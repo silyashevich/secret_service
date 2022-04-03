@@ -5,6 +5,8 @@ from flask_wtf import FlaskForm
 from wtforms import TextAreaField, SubmitField
 from wtforms.validators import InputRequired, Length
 
+
+DEBUG = False
 app = Flask(__name__)
 app.config['SECRET_KEY'] = str(uuid4())
 WTF_CSRF_ENABLED = True
@@ -15,7 +17,6 @@ class SetSecretForm(FlaskForm):
     submit = SubmitField(label="Generate One-Time Link")
 
 
-DEBUG = True
 CREATE_TABLE_SECRET = 'CREATE TABLE IF NOT EXISTS `secret` (`token` TEXT, `secret` TEXT );'
 INSERT_DATA_SECRET = 'INSERT INTO `secret` (`token`, `secret`) VALUES (?, ?);'
 READ_DATA_SECRET = 'SELECT `secret` FROM SECRET WHERE `token` = ?;'
@@ -25,7 +26,7 @@ DELETE_DATA_SECRET = 'DELETE FROM `secret` WHERE `token` = ?;'
 def sqlite_query(query, data=()):
     cnx, records = None, None
     try:
-        cnx = connect('secret.db')
+        cnx = connect('db/secret.db')
         cursor = cnx.cursor()
         cursor.execute(query, data)
         records = cursor.fetchall()
