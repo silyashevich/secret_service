@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    {% block head %}
+        <title>{% block title %}{% endblock %}@secret_service</title>
+    {% endblock %}
+    <style>
+        html {
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100%;
+            background-color: #eeeeee;
+            color: #000000;
+            padding: 0;
+            margin: 0;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            display: block
+        }
+
+        * {
+            box-sizing: inherit;
+        }
+
+        section {
+            height: 100%
+        }
+
+        .wrapper {
+            min-height: 100%;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        .page-header,
+        .page-footer {
+            background-color: #bfbfbf;
+            color: #000000;
+            padding: 15px;
+        }
+
+        .page-body {
+            padding: 15px;
+        }
+
+        .preview {
+            height: 400px;
+            overflow: auto;
+        }
+
+        textarea,
+        input[type=text],
+        input[type=submit] {
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            margin: 0;
+            border: 2px solid #bfbfbf;
+            border-radius: 6px;
+            padding: 5px;
+        }
+
+        textarea,
+        input[type=text] {
+            width: 100%;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <section>
+        <div class="wrapper">
+            <header class="page-header"><a href="/">Secret Service</a></header>
+            <main class="page-body">
+            {% block body %}
+            {% endblock %}
+            </main>
+            <footer class="page-footer">Created by <a href="https://github.com/silyashevich/secret_service">Sergey Ilyashevich</a></footer>
+        </div>
+    </section>
+</body>
+</html>

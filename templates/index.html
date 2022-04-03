@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block head %}{% endblock %}
+{% block title %}set_secret{% endblock %}
+{% block body %}
+<p>Web application solve problem of sending private information (passwords, certs, keys, etc.) in plain text (in emails, mesengers, etc).</p>
+<p>To send information, store it in a database on the server and send a unique one-time link instead.</p>
+<p>After using link information will be permanently deleted from server.</p>
+<p><a href="/set_secret">Generate link with your information</a></p>
+{% endblock %}
