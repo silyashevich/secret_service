@@ -2,10 +2,9 @@
 
 #### Info
 
-Web application solve problem of sending private information (passwords, certs, keys, etc.) in plain text (in emails, messengers, etc).
-To send information, store it in a database on the server and send a unique one-time link instead.
-After using link information will be permanently deleted from server. 
-Fast, simple and safe.
+Secret Service solve problem of sending private information (passwords, certs, keys, etc.) in plain text (in emails, messengers, etc).
+
+To send information safely, store it in a database on the server and send a unique one-time link instead. After clicking on this link, the information will be displayed on the screen and permanently deleted from the server.
 
 #### Automation
 

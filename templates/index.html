@@ -2,8 +2,8 @@
 {% block head %}{% endblock %}
 {% block title %}set_secret{% endblock %}
 {% block body %}
-<p>Web application solve problem of sending private information (passwords, certs, keys, etc.) in plain text (in emails, mesengers, etc).</p>
-<p>To send information, store it in a database on the server and send a unique one-time link instead.</p>
-<p>After using link information will be permanently deleted from server.</p>
-<p><a href="/set_secret">Generate link with your information</a></p>
+<h6>Secret Service solve problem of sending private information (passwords, certs, keys, etc.) in plain text (in emails, messengers, etc).</h6>
+<p>To send information safely, store it in a database on the server and send a unique one-time link instead.
+After clicking on this link, the information will be displayed on the screen and permanently deleted from the server.</p>
+<a class="button" href="/set_secret">Generate a one-time link</a>
 {% endblock %}

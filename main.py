@@ -14,7 +14,7 @@ WTF_CSRF_ENABLED = True
 
 class SetSecretForm(FlaskForm):
     secret = TextAreaField(label="Information", validators=[InputRequired(), Length(max=4096)])
-    submit = SubmitField(label="Generate One-Time Link")
+    submit = SubmitField(label="Generate a one-time link")
 
 
 CREATE_TABLE_SECRET = 'CREATE TABLE IF NOT EXISTS `secret` (`token` TEXT, `secret` TEXT );'
@@ -65,7 +65,8 @@ def set_secret():
         session['token'] = str(uuid4())
         sqlite_query(INSERT_DATA_SECRET, (session['token'], secret))
         return redirect(url_for('set_secret'))
-    return render_template('set_secret.html', form=form, token=session.get('token'), secret=secret, host_url=request.host_url)
+    return render_template('set_secret.html',
+                           form=form, token=session.get('token'), secret=secret, host_url=request.host_url)
 
 
 @app.route('/get_secret')
