@@ -65,7 +65,6 @@ def make_url():
     return response
 
 
-# +
 @app.route('/', methods=['GET', 'POST'])
 def home():
     set_secret_form = SetSecretForm()
@@ -81,7 +80,6 @@ def home():
                            form=set_secret_form)
 
 
-# +
 @app.route('/show_link')
 def show_link():
     link = {'link': request.args.get('link')}
@@ -89,16 +87,13 @@ def show_link():
                            link=link)
 
 
-# +
 @app.route('/get_secret')
 def get_secret():
-    # get_secret_form = GetSecretForm()
     secret_uuid = request.args.get('uuid')
     result = sqlite_query(READ_DATA_SECRET, (secret_uuid,))
     if len(result) > 0:
         fernet = Fernet(bytes(request.args.get('key'), 'utf-8'))
         secret = {'secret': fernet.decrypt(result[0][0]).decode()}
-        # get_secret_form.secret.data = fernet.decrypt(result[0][0]).decode()
         sqlite_query(DELETE_DATA_SECRET, (secret_uuid,))
     else:
         secret = None
