@@ -1,26 +1,42 @@
-from flask import Flask, render_template, request, session, redirect, url_for
-from uuid import uuid4
-from sqlite3 import connect, Error
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from cryptography.fernet import Fernet
+from datetime import datetime
+from flask import json, Flask, render_template, request, redirect, url_for
+from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, SubmitField
+from sqlite3 import connect, Error
+from wtforms import StringField, TextAreaField, SubmitField
 from wtforms.validators import InputRequired, Length
-
+from uuid import uuid4
 
 DEBUG = False
 app = Flask(__name__)
+bootstrap = Bootstrap(app)
 app.config['SECRET_KEY'] = str(uuid4())
-WTF_CSRF_ENABLED = True
+app.config['BOOTSTRAP_SERVE_LOCAL'] = True
+WTF_CSRF_ENABLED = False
 
 
 class SetSecretForm(FlaskForm):
-    secret = TextAreaField(label="Information", validators=[InputRequired(), Length(max=4096)])
+    secret = TextAreaField(label="Information",
+                           validators=[InputRequired(), Length(max=4096)],
+                           render_kw={'placeholder': 'Information to be stored in service...'})
     submit = SubmitField(label="Generate a one-time link")
 
 
-CREATE_TABLE_SECRET = 'CREATE TABLE IF NOT EXISTS `secret` (`token` TEXT, `secret` TEXT );'
-INSERT_DATA_SECRET = 'INSERT INTO `secret` (`token`, `secret`) VALUES (?, ?);'
-READ_DATA_SECRET = 'SELECT `secret` FROM SECRET WHERE `token` = ?;'
-DELETE_DATA_SECRET = 'DELETE FROM `secret` WHERE `token` = ?;'
+class GetSecretForm(FlaskForm):
+    secret = TextAreaField(label="Information", render_kw={'readonly': True})
+
+
+class ShowLinkForm(FlaskForm):
+    link = StringField(label="Link", render_kw={'readonly': True})
+
+
+CREATE_TABLE_SECRET = 'CREATE TABLE IF NOT EXISTS `secret` (`uuid` TEXT, `secret` TEXT, `updated` TIMESTAMP );'
+INSERT_DATA_SECRET = 'INSERT INTO `secret` (`uuid`, `secret`, `updated`) VALUES (?, ?, ?);'
+READ_DATA_SECRET = 'SELECT `secret` FROM SECRET WHERE `uuid` = ?;'
+DELETE_DATA_SECRET = 'DELETE FROM `secret` WHERE `uuid` = ?;'
 
 
 def sqlite_query(query, data=()):
@@ -41,43 +57,59 @@ def sqlite_query(query, data=()):
 
 @app.route('/make_url')
 def make_url():
-    secret = request.args.get('secret')
-    session['token'] = str(uuid4())
-    d = {session['token']: secret}
-    sqlite_query(INSERT_DATA_SECRET, (session['token'], secret))
-    return d
+    pass
+    secret_uuid = str(uuid4())
+    key = Fernet.generate_key()
+    fernet = Fernet(key)
+    encrypt_message = fernet.encrypt(request.args.get('secret').encode())
+    link = f'{request.host_url}get_secret?uuid={secret_uuid}&key={key.decode("utf-8")}'
+    sqlite_query(INSERT_DATA_SECRET, (secret_uuid, encrypt_message, datetime.now()))
+    data = {'uuid': secret_uuid, 'key': key.decode("utf-8"), 'link': link}
+    response = app.response_class(
+        response=json.dumps(data),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
-@app.route('/')
+# +
+@app.route('/', methods=['GET', 'POST'])
 def home():
-    session['token'] = None
-    return render_template("index.html", host_url=request.host_url)
+    set_secret_form = SetSecretForm()
+    if set_secret_form.validate_on_submit():
+        secret_uuid = str(uuid4())
+        key = Fernet.generate_key()
+        fernet = Fernet(key)
+        encrypt_message = fernet.encrypt(set_secret_form.secret.data.encode())
+        link = f'{request.host_url}get_secret?uuid={secret_uuid}&key={key.decode("utf-8")}'
+        sqlite_query(INSERT_DATA_SECRET, (secret_uuid, encrypt_message, datetime.now()))
+        return redirect(url_for('show_link', link=link))
+    return render_template('home.html',
+                           form=set_secret_form)
 
 
-@app.route('/set_secret', methods=['post', 'get'])
-def set_secret():
-    form = SetSecretForm()
-    secret = ''
-    if request.method == 'POST':
-        secret = request.form.get('secret')
-    if form.validate_on_submit():
-        secret = form.secret.data
-        session['token'] = str(uuid4())
-        sqlite_query(INSERT_DATA_SECRET, (session['token'], secret))
-        return redirect(url_for('set_secret'))
-    return render_template('set_secret.html',
-                           form=form, token=session.get('token'), secret=secret, host_url=request.host_url)
+# +
+@app.route('/show_link')
+def show_link():
+    show_link_form = ShowLinkForm()
+    show_link_form.link.data = request.args.get('link')
+    return render_template('show_link.html',
+                           form=show_link_form)
 
 
+# +
 @app.route('/get_secret')
 def get_secret():
-    secret = ''
-    session['token'] = request.args.get('token')
-    result = sqlite_query(READ_DATA_SECRET, (session['token'],))
+    get_secret_form = GetSecretForm()
+    secret_uuid = request.args.get('uuid')
+    result = sqlite_query(READ_DATA_SECRET, (secret_uuid,))
     if len(result) > 0:
-        secret = result[0][0]
-        sqlite_query(DELETE_DATA_SECRET, (session['token'],))
-    return render_template('get_secret.html', token=session['token'], secret=secret)
+        fernet = Fernet(bytes(request.args.get('key'), 'utf-8'))
+        get_secret_form.secret.data = fernet.decrypt(result[0][0]).decode()
+        sqlite_query(DELETE_DATA_SECRET, (secret_uuid,))
+    return render_template('get_secret.html',
+                           form=get_secret_form)
 
 
 if __name__ == '__main__':

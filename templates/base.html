@@ -1,43 +1,22 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-     <meta name="viewport" content="width=device-width,initial-scale=1">
-     <link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-     <link rel="stylesheet" href="/static/skeleton.min.css">
-     {% block head %}
-        <title>{% block title %}{% endblock %}@secret_service</title>
-     {% endblock %}
-</head>
-<body>
-<div class="container">
-    <div class="row">
-        <div class="twelve columns">
-            <a href="/"><h6>Home</h6></a>
-        </div>
-    </div>
-    <div class="row">
-        <div class="twelve columns">
-            <h3>Secret Service</h3>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="twelve columns">
-            {% block body %}
-            {% endblock %}
-        </div>
-    </div>
-
-    <div class="row u-text-right">
-        <div class="twelve columns">
-            <hr>
-            <h6>Created by <a href="https://github.com/silyashevich/secret_service">Sergey Ilyashevich</a></h6>
-        </div>
-    </div>
+{% extends "bootstrap/base.html" %}
+{% block html_attribs %} lang="en"{% endblock html_attribs%}
+{% block metas %}
+<meta charset="utf-8">
+{%- endblock metas %}
+{% block title %}Secret Service{% endblock title %}
+{% block navbar %}
+<nav class="navbar navbar-light bg-light">
+    <a class="navbar-brand" href="/"><span class="glyphicon glyphicon-home"></span> Secret Service</a>
+</nav>
+{% endblock navbar %}
+{% block content %}<div class="container">
+{% block app_content %}
+{% endblock app_content %}
 </div>
-
-
-
-</body>
-</html>
+{{super()}}
+{% block footer %}
+{% endblock footer %}
+<div class="footer navbar-fixed-bottom text-center">
+    <p class="text-muted credit">Created by <a href="https://github.com/silyashevich/secret_service">Sergey Ilyashevich</a></p>
+</div>
+{% endblock content %}

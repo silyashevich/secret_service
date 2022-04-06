@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block app_content %}
+<div class="row">
+    <p class="text-muted credit">Sending passwords, certificates, keys, etc. via emails, instant messengers and others method is a common practice. This is also bad practice.
+Save your information encrypted on the server and get a one-time link. You can safely send this link in your favorite way. The information will not be available in the correspondence.
+After clicking on this link, the information will be displayed on the screen and permanently deleted from the server.</p>
+    <p class="text-muted credit">Encryption is done with AES 128 in CBC mode.</p>
+    <p class="text-muted credit">The decryption key is not stored on the server. The key is only available in the link. The key cannot be restored.</p>
+    <hr>
+</div>
+<div class="row">
+{{ wtf.quick_form(form) }}
+</div>
+{% endblock app_content %}
