@@ -6,11 +6,11 @@ from flask import json, Flask, render_template, request, redirect, url_for
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from sqlite3 import connect, Error
-from wtforms import StringField, TextAreaField, SubmitField
+from wtforms import TextAreaField, SubmitField
 from wtforms.validators import InputRequired, Length
 from uuid import uuid4
 
-DEBUG = False
+DEBUG = True
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
 app.config['SECRET_KEY'] = str(uuid4())
@@ -23,14 +23,6 @@ class SetSecretForm(FlaskForm):
                            validators=[InputRequired(), Length(max=4096)],
                            render_kw={'placeholder': 'Information to be stored in service...'})
     submit = SubmitField(label="Generate a one-time link")
-
-
-class GetSecretForm(FlaskForm):
-    secret = TextAreaField(label="Information", render_kw={'readonly': True})
-
-
-class ShowLinkForm(FlaskForm):
-    link = StringField(label="Link", render_kw={'readonly': True})
 
 
 CREATE_TABLE_SECRET = 'CREATE TABLE IF NOT EXISTS `secret` (`uuid` TEXT, `secret` TEXT, `updated` TIMESTAMP );'
@@ -92,24 +84,26 @@ def home():
 # +
 @app.route('/show_link')
 def show_link():
-    show_link_form = ShowLinkForm()
-    show_link_form.link.data = request.args.get('link')
+    link = {'link': request.args.get('link')}
     return render_template('show_link.html',
-                           form=show_link_form)
+                           link=link)
 
 
 # +
 @app.route('/get_secret')
 def get_secret():
-    get_secret_form = GetSecretForm()
+    # get_secret_form = GetSecretForm()
     secret_uuid = request.args.get('uuid')
     result = sqlite_query(READ_DATA_SECRET, (secret_uuid,))
     if len(result) > 0:
         fernet = Fernet(bytes(request.args.get('key'), 'utf-8'))
-        get_secret_form.secret.data = fernet.decrypt(result[0][0]).decode()
+        secret = {'secret': fernet.decrypt(result[0][0]).decode()}
+        # get_secret_form.secret.data = fernet.decrypt(result[0][0]).decode()
         sqlite_query(DELETE_DATA_SECRET, (secret_uuid,))
+    else:
+        secret = None
     return render_template('get_secret.html',
-                           form=get_secret_form)
+                           secret=secret)
 
 
 if __name__ == '__main__':

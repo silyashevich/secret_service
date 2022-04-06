@@ -7,6 +7,9 @@
     </div>
 </div>
 <div class="row">
-    {{ wtf.quick_form(form) }}
+    <div class="form-group">
+        <label class="control-label" for="link">Link</label>
+        <input type="text" class="form-control" id="link" name="link" value="{{ link.link }}" readonly>
+    </div>
 </div>
 {% endblock %}
