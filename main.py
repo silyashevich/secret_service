@@ -9,26 +9,22 @@ from sqlite3 import connect, Error
 from wtforms import TextAreaField, SubmitField
 from wtforms.validators import InputRequired, Length
 from uuid import uuid4
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
 
-DEBUG = True
+DEBUG = False
+DAYS_TO_DELETE = 14
 app = Flask(__name__)
 bootstrap = Bootstrap(app)
 app.config['SECRET_KEY'] = str(uuid4())
 app.config['BOOTSTRAP_SERVE_LOCAL'] = True
 WTF_CSRF_ENABLED = False
-
-
-class SetSecretForm(FlaskForm):
-    secret = TextAreaField(label="Information",
-                           validators=[InputRequired(), Length(max=4096)],
-                           render_kw={'placeholder': 'Information to be stored in service...'})
-    submit = SubmitField(label="Generate a one-time link")
-
-
 CREATE_TABLE_SECRET = 'CREATE TABLE IF NOT EXISTS `secret` (`uuid` TEXT, `secret` TEXT, `updated` TIMESTAMP );'
 INSERT_DATA_SECRET = 'INSERT INTO `secret` (`uuid`, `secret`, `updated`) VALUES (?, ?, ?);'
 READ_DATA_SECRET = 'SELECT `secret` FROM SECRET WHERE `uuid` = ?;'
 DELETE_DATA_SECRET = 'DELETE FROM `secret` WHERE `uuid` = ?;'
+DELETE_OLD_SECRET = (f'DELETE FROM `secret` WHERE EXISTS (SELECT * '
+                     f'FROM `secret` WHERE `updated` < (SELECT DATETIME(\'now\', \'-{DAYS_TO_DELETE} day\')))')
 
 
 def sqlite_query(query, data=()):
@@ -45,6 +41,23 @@ def sqlite_query(query, data=()):
         if cnx:
             cnx.close()
     return records
+
+
+def scheduler_task():
+    sqlite_query(DELETE_OLD_SECRET)
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=scheduler_task, trigger="interval", hours=1)
+scheduler.start()
+atexit.register(lambda: scheduler.shutdown())
+
+
+class SetSecretForm(FlaskForm):
+    secret = TextAreaField(label="Information",
+                           validators=[InputRequired(), Length(max=4096)],
+                           render_kw={'placeholder': 'Information to be stored in service...'})
+    submit = SubmitField(label="Generate a one-time link")
 
 
 @app.route('/make_url')
